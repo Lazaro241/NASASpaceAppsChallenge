@@ -11,7 +11,6 @@ function App() {
   const [asteroids, setAsteroids] = useState([])
   const [selectedAsteroid, setSelectedAsteroid] = useState(null)
   const [showImpact, setShowImpact] = useState(false)
-  const [detailsById, setDetailsById] = useState({})
 
   // Store selectedPoint in localStorage for persistence
   useEffect(() => {
@@ -23,6 +22,7 @@ function App() {
 
   // Handle asteroid selection
   const handleAsteroidSelect = (asteroid) => {
+    // asteroid here is the item from the merged list (has details)
     setSelectedAsteroid(asteroid)
     console.log('Selected Asteroid:', asteroid) // For debugging
   }
@@ -72,24 +72,27 @@ function App() {
             {selectedPoint && (
               <button className="continue-btn" onClick={async () => {
                 try {
+                  // Load both list and details, then merge by id
                   const [listRes, detailsRes] = await Promise.all([
                     fetch('/asteroids_list.json'),
                     fetch('/asteroids_details.json')
                   ])
-                  const [listData, detailsData] = await Promise.all([listRes.json(), detailsRes.json()])
+                  const listData = await listRes.json()
+                  const detailsData = await detailsRes.json()
 
-                  // Build a lookup for details by id
-                  const byId = {}
-                  detailsData.forEach(d => { byId[d.id] = d })
+                  // Build a map of details by id for fast lookup
+                  const detailsMap = new Map(detailsData.map(d => [d.id, d]))
 
-                  // Merge list entries with details when available
-                  const merged = listData.map(item => ({ ...item, ...byId[item.id] }))
+                  // Merge: prefer detail fields when present
+                  const merged = listData.map(item => ({
+                    ...item,
+                    ...detailsMap.get(item.id)
+                  }))
 
-                  setDetailsById(byId)
                   setAsteroids(merged)
                   setShowList(true)
                 } catch (err) {
-                  console.error('Failed to load asteroids data', err)
+                  console.error('Failed to load asteroids list or details', err)
                 }
               }}>continue</button>
             )}
@@ -132,9 +135,10 @@ function App() {
             <aside className="asteroid-details">
               <h3>{selectedAsteroid.name} Details</h3>
               <ul>
-                <li><strong>Date:</strong> {selectedAsteroid.date || (detailsById[selectedAsteroid.id]?.date) || 'N/A'}</li>
-                <li><strong>Diameter:</strong> {selectedAsteroid.diameter_km || detailsById[selectedAsteroid.id]?.diameter_km || 'N/A'} km</li>
-                <li><strong>Velocity:</strong> {selectedAsteroid.velocity_kms || detailsById[selectedAsteroid.id]?.velocity_kms || 'N/A'} km/s</li>
+                <li><strong>Date:</strong> {selectedAsteroid.date || 'N/A'}</li>
+                <li><strong>Diameter:</strong> {(selectedAsteroid.diameter_km ?? selectedAsteroid.diameter) || 'N/A'} km</li>
+                <li><strong>Velocity:</strong> {(selectedAsteroid.velocity_kms ?? selectedAsteroid.velocity) || 'N/A'} km/s</li>
+                <li><strong>ID:</strong> {selectedAsteroid.id}</li>
               </ul>
               <button className="continue-btn" onClick={handleContinue}>continue</button>
             </aside>
