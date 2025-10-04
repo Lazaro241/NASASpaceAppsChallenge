@@ -1,35 +1,51 @@
 import math
 
 DENSITIES = {
-    "C": 1500,   # Carbonáceo (poroso, friable)
-    "S": 3000,   # Rocoso (silicatos)
-    "M": 6000    # Metálico (níquel-hierro)
+    "C": 1500,   # Carbonaceous (porous, friable)
+    "S": 3000,   # Stony (silicates)
+    "M": 6000    # Metallic (nickel-iron)
 }
 
+TARGET_DENSITY = 2700  # kg/m³, average for crystalline rock (from Collins et al., 2005)
+
 def estimate_impact(diameter_km, velocity_kms, density, impact_angle_deg=45):
+    # --- Unit conversions ---
+    diameter_m = diameter_km * 1000
+    radius_m = diameter_m / 2
+    velocity_ms = velocity_kms * 1000
+    theta_rad = math.radians(impact_angle_deg)  # Angle from horizontal (90° = vertical impact)
+    sin_theta = math.sin(theta_rad)
+    g = 9.81  # m/s², Earth gravity
 
-    # --- Conversión de unidades ---
-    r = (diameter_km * 1000) / 2
-    v = velocity_kms * 1000
-    theta = math.radians(impact_angle_deg)
+    # --- Mass (kg) ---
+    volume_m3 = (4/3) * math.pi * (radius_m ** 3)
+    mass = volume_m3 * density
 
-    # --- Masa (kg) ---
-    mass = (4/3) * math.pi * (r**3) * density
+    # --- Kinetic energy (J) ---
+    E = 0.5 * mass * (velocity_ms ** 2)
+    E_mt = E / 4.184e15  # Megatons TNT
 
-    # --- Energía cinética (J) ---
-    E = 0.5 * mass * (v**2)
-    E_mt = E / 4.184e15  # a megatones TNT
+    # --- Transient crater diameter (m) from Collins et al. (2005) ---
+    rho_i = density
+    rho_t = TARGET_DENSITY
+    D_tc_m = 1.161 * (rho_i / rho_t)**(1/3) * diameter_m**0.78 * velocity_ms**0.44 * g**(-0.22) * (sin_theta)**(1/3)
+    D_tc_km = D_tc_m / 1000
 
-    # --- Cálculo del cráter (ajustado a densidad real) ---
-    # Ecuación derivada de Holsapple (1993), Collins et al. (2005)
-    g = 9.81  # m/s²
-    crater_diameter_km = 1.161 * (density/3000)**0.333 * (velocity_kms/20)**0.44 * (diameter_km**0.78)
+    # --- Final crater diameter (km) ---
+    D_c = 3.2  # Transition diameter (km) for simple to complex craters
+    if D_tc_km < (D_c / 1.25):  # Approx 2.56 km threshold for transient
+        crater_diameter_km = 1.25 * D_tc_km  # Simple crater adjustment
+    else:
+        crater_diameter_km = 1.17 * D_tc_km**1.13 * D_c**(-0.13)  # Complex crater scaling
+
     crater_radius_km = crater_diameter_km / 2
 
-    # --- Radio de onda expansiva (zona de daño) ---
-    shockwave_radius_km = crater_radius_km * 3.5  # proporción empírica
+    # --- Shockwave radius (km) for ~5 psi overpressure (heavy damage threshold) ---
+    # Approximation based on surface nuclear burst scaling (e.g., Glasstone & Dolan, 1977; NukeMap data)
+    # R ≈ 6.4 * E_mt^{1/3} km (e.g., ~6.4 km for 1 Mt yield)
+    shockwave_radius_km = 6.4 * (E_mt ** (1/3)) if E_mt > 0 else 0
 
-    # --- Comparación histórica ---
+    # --- Historical comparison ---
     comparison = compare_explosion(E_mt)
 
     return {
@@ -42,29 +58,29 @@ def estimate_impact(diameter_km, velocity_kms, density, impact_angle_deg=45):
 
 def compare_explosion(energy_mt: float):
     """
-    Compara la energía del impacto con eventos y explosiones históricas.
-    Devuelve datos estructurados para visualización.
+    Compares the impact energy to historical events.
+    Returns structured data for visualization.
     """
 
-    # Base de eventos conocidos (fuente: NASA, USGS, Impact Effects Program)
+    # Base of known events (source: NASA, USGS, Impact Effects Program)
     references = [
-        {"name": "Bomba de Hiroshima", "energy_mt": 0.015, "type": "nuclear", "category": "local devastation"},
-        {"name": "Bomba Zar (URSS, 1961)", "energy_mt": 50, "type": "nuclear", "category": "regional destruction"},
-        {"name": "Evento de Chelyabinsk (2013)", "energy_mt": 0.5, "type": "meteor", "category": "city damage"},
-        {"name": "Evento de Tunguska (1908)", "energy_mt": 15, "type": "meteor", "category": "regional devastation"},
-        {"name": "Monte St. Helens (1980)", "energy_mt": 24, "type": "volcanic", "category": "regional"},
+        {"name": "Hiroshima Bomb", "energy_mt": 0.015, "type": "nuclear", "category": "local devastation"},
+        {"name": "Tsar Bomba (USSR, 1961)", "energy_mt": 50, "type": "nuclear", "category": "regional destruction"},
+        {"name": "Chelyabinsk Event (2013)", "energy_mt": 0.5, "type": "meteor", "category": "city damage"},
+        {"name": "Tunguska Event (1908)", "energy_mt": 15, "type": "meteor", "category": "regional devastation"},
+        {"name": "Mount St. Helens (1980)", "energy_mt": 24, "type": "volcanic", "category": "regional"},
         {"name": "Krakatoa (1883)", "energy_mt": 200, "type": "volcanic", "category": "continental"},
-        {"name": "Evento de Chicxulub (KT extinction)", "energy_mt": 1e8, "type": "asteroid", "category": "global extinction"}
+        {"name": "Chicxulub Event (KT extinction)", "energy_mt": 1e8, "type": "asteroid", "category": "global extinction"}
     ]
 
-    # Ordenar por energía
+    # Sort by energy
     references.sort(key=lambda x: x["energy_mt"])
 
-    # Encontrar evento más cercano en magnitud
+    # Find closest event by log-scale difference
     closest = min(references, key=lambda x: abs(math.log10(energy_mt) - math.log10(x["energy_mt"])))
     ratio = energy_mt / closest["energy_mt"]
 
-    # Definir nivel de severidad aproximado
+    # Define approximate severity level
     if energy_mt < 0.1:
         severity = "local"
     elif energy_mt < 10:
@@ -81,5 +97,5 @@ def compare_explosion(energy_mt: float):
         "ratio": round(ratio, 2),
         "severity": severity,
         "category": closest["category"],
-        "summary": f"≈ {round(ratio,1)}× la energía de {closest['name']} ({closest['energy_mt']} Mt TNT)"
+        "summary": f"≈ {round(ratio,1)}× the energy of {closest['name']} ({closest['energy_mt']} Mt TNT)"
     }
