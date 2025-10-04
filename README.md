@@ -1,6 +1,6 @@
-# Impactor 2024 - Meteor Impact Prediction System
+# Impactor 2025 - Meteor Impact Prediction System
 
-## NASA Space Apps Challenge 2024
+## NASA Space Apps Challenge 2025
 
 ### Project Overview
 This project aims to develop a comprehensive meteor impact prediction system for the NASA Space Apps Challenge 2025 in San Luis, Argentina. Our solution focuses on tracking, analyzing, and predicting potential meteor impacts to help protect Earth from space threats.
