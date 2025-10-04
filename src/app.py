@@ -23,8 +23,8 @@ NASA_API_KEY = os.getenv('NASA_API_KEY', 'DEMO_KEY')
 def home():
     """Endpoint de bienvenida"""
     return jsonify({
-        'message': '🚀 Welcome to Impactor 2024 API',
-        'project': 'NASA Space Apps Challenge 2024',
+        'message': '🚀 Welcome to Impactor 2025 API',
+        'project': 'NASA Space Apps Challenge 2025',
         'description': 'Meteor Impact Prediction System',
         'status': 'active'
     })
@@ -34,7 +34,7 @@ def health():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'service': 'Impactor 2024 Backend',
+        'service': 'Impactor 2025 Backend',
         'nasa_api_key': 'configured' if NASA_API_KEY != 'DEMO_KEY' else 'using_demo'
     })
 
