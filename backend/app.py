@@ -1,111 +1,111 @@
+
 from flask import Flask, jsonify, request, render_template_string
 import json
+import os
+import time
+import requests
+from impact_calculations import DENSITIES, estimate_impact
 
 app = Flask(__name__)
 
+# Simple in-memory cache to avoid spamming external API during development
+# cache structure: { cache_key: (timestamp, data) }
+_NEO_CACHE = {}
+_NEO_CACHE_TTL = 300  # seconds
 
-@app.route("/api/asteroid")
-def asteroid():
-        sample_data = {
-                "name": "Impactor-2025",
-                "diameter_km": 0.35,
-                "velocity_kms": 25.0,
-                "miss_distance_km": 45000
-        }
 
-        # If the client prefers HTML (e.g., a browser), return a small visual page.
-        best = request.accept_mimetypes.best_match(["text/html", "application/json"])
-        if best == "text/html":
-                template = """<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <title>{{ name }} — Visualization</title>
-        <style>
-            body { font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial; padding: 20px; background: #08121a; color: #dff6ff; }
-            .card { background: linear-gradient(180deg,#0b2836 0%,#09202a 100%); padding: 18px; border-radius: 10px; max-width: 760px; margin: 0 auto; box-shadow: 0 6px 24px rgba(0,0,0,0.6); }
-            h1 { margin: 0 0 8px 0; font-size: 20px; }
-            .meta { display:flex; gap:12px; color:#9ed9e8; margin-bottom:12px }
-            svg { display:block; margin: 12px auto; background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0)); border-radius:8px }
-            .pulse { animation: pulse 1.8s infinite; }
-            @keyframes pulse { 0% { opacity:0.8; transform: scale(1); } 50% { opacity:1; transform: scale(1.06); } 100% { opacity:0.8; transform: scale(1); } }
-            .legend { font-size: 12px; color:#9ed9e8; text-align:center; margin-top:8px }
-        </style>
-    </head>
-    <body>
-        <div class="card">
-            <h1>{{ name }}</h1>
-            <div class="meta">
-                <div>Diameter: <strong>{{ diameter_km }} km</strong></div>
-                <div>Velocity: <strong>{{ velocity_kms }} km/s</strong></div>
-                <div>Miss distance: <strong>{{ miss_distance_km }} km</strong></div>
-            </div>
 
-            <svg id="viz" width="720" height="200" viewBox="0 0 720 200" aria-labelledby="title">
-                <title id="title">Asteroid visualization</title>
-                <!-- Space line -->
-                <line x1="40" y1="100" x2="680" y2="100" stroke="#173744" stroke-width="6" stroke-linecap="round" />
-                <!-- Start (Earth) -->
-                <g id="earth" transform="translate(40,100)">
-                    <circle r="18" fill="#2a9df4" stroke="#123" stroke-width="2"></circle>
-                    <text x="-6" y="36" fill="#9ed9e8" font-size="12">Earth</text>
-                </g>
-                <!-- Asteroid group placed by JS -->
-                <g id="asteroid" class="pulse">
-                    <circle id="ast-circle" cx="0" cy="0" r="8" fill="#f1c40f" stroke="#7a5a06" stroke-width="2"></circle>
-                    <text id="ast-label" x="0" y="28" text-anchor="middle" fill="#ffdca3" font-size="12"></text>
-                </g>
-            </svg>
-            <div class="legend">Velocity animated as pulse; asteroid size & position are scaled for visualization purposes.</div>
-        </div>
+def fetch_neo_feed(start_date: str, end_date: str):
+    """Fetch NEO feed from NASA API with a tiny cache.
 
-        <script>
-            // Embedded data from server
-            const data = {{ data | safe }};
+    Returns parsed JSON on success or raises requests.HTTPError on failure.
+    """
+    cache_key = f"{start_date}:{end_date}"
+    now = time.time()
+    entry = _NEO_CACHE.get(cache_key)
+    if entry:
+        ts, data = entry
+        if now - ts < _NEO_CACHE_TTL:
+            return data
 
-            // Scale factors for visual mapping (tune for demo)
-            const diameterScale = 40; // px per km
-            const maxDisplayDistance = 200000; // km mapped to the svg track length
-            const trackStart = 40;
-            const trackEnd = 680;
-            const trackLength = trackEnd - trackStart;
+    # Prefer environment variable for API key; fall back to the provided key.
+    api_key = os.environ.get('NASA_API_KEY', 'I9NwBBH5lMKaXpBTplmG8CReKqCgpLNUYiEbSNhq')
+    url = (
+        'https://api.nasa.gov/neo/rest/v1/feed'
+        f'?start_date={start_date}&end_date={end_date}&api_key={api_key}'
+    )
 
-            // Compute radius and position
-            const radius = Math.max(4, data.diameter_km * diameterScale);
-            const clamped = Math.min(data.miss_distance_km, maxDisplayDistance);
-            const t = clamped / maxDisplayDistance;
-            const x = trackStart + t * trackLength;
+    resp = requests.get(url, timeout=10)
+    resp.raise_for_status()
+    data = resp.json()
 
-            const astGroup = document.getElementById('asteroid');
-            const astCircle = document.getElementById('ast-circle');
-            const astLabel = document.getElementById('ast-label');
+    # store in cache
+    _NEO_CACHE[cache_key] = (now, data)
+    return data
 
-            astCircle.setAttribute('r', String(radius));
-            astGroup.setAttribute('transform', `translate(${x},100)`);
-            astLabel.textContent = data.name;
 
-            // Map velocity to pulse speed
-            const base = Math.min(40, Math.max(5, data.velocity_kms));
-            const styleEl = document.createElement('style');
-            styleEl.textContent = `.pulse { animation-duration: ${2.5 - Math.min(1.8, base/40)}s; }`;
-            document.head.appendChild(styleEl);
-        </script>
-    </body>
-</html>
-"""
+@app.route('/api/neo-feed')
+def neo_feed():
+    """Return NASA NEO feed JSON for the requested date range.
 
-                return render_template_string(
-                        template,
-                        name=sample_data["name"],
-                        diameter_km=sample_data["diameter_km"],
-                        velocity_kms=sample_data["velocity_kms"],
-                        miss_distance_km=sample_data["miss_distance_km"],
-                        data=json.dumps(sample_data),
-                )
+    Query params:
+      - start_date (YYYY-MM-DD) default: 2025-10-04
+      - end_date (YYYY-MM-DD) default: 2025-10-05
+    """
+    start_date = request.args.get('start_date', '2025-10-04')
+    end_date = request.args.get('end_date', '2025-10-05')
 
-        # Default: return JSON for API clients
-        return jsonify(sample_data)
+    try:
+        data = fetch_neo_feed(start_date, end_date)
+    except requests.HTTPError as e:
+        # forward error
+        return jsonify({'error': 'Failed to fetch NEO feed', 'details': str(e)}), 502
+    except requests.RequestException as e:
+        return jsonify({'error': 'Network error when contacting NASA API', 'details': str(e)}), 502
+
+    # Return the raw JSON from NASA's API.
+    return jsonify(data)
+
+@app.route("/api/asteroids-summary")
+def asteroids_summary():
+    start_date = request.args.get('start_date', '2025-10-04')
+    end_date = request.args.get('end_date', '2025-10-05')
+
+    try:
+        feed = fetch_neo_feed(start_date, end_date)
+    except requests.RequestException as e:
+        return jsonify({"error": str(e)}), 502
+
+    neos = []
+    for date, objs in feed.get("near_earth_objects", {}).items():
+        for o in objs:
+            try:
+                ca = o["close_approach_data"][0]
+                neos.append({
+                    "name": o["name"],
+                    "id": o["id"],
+                    "diameter_km": o["estimated_diameter"]["kilometers"]["estimated_diameter_max"],
+                    "velocity_kms": float(ca["relative_velocity"]["kilometers_per_second"]),
+                    "miss_distance_km": float(ca["miss_distance"]["kilometers"]),
+                    "date": date
+                })
+            except (KeyError, IndexError, ValueError):
+                continue
+
+    neos.sort(key=lambda x: x["miss_distance_km"])
+    return jsonify(neos)
+
+@app.route("/api/impact", methods=["POST"])
+def impact():
+    data = request.get_json()
+    diameter_km = data.get("diameter_km", 1)
+    velocity_kms=data.get("velocity_kms", 20)
+    diameter_km=data.get("diameter_km", 1)
+    impact_angle_deg=data.get("angle", 45)
+    results = {}
+    for key, dens in DENSITIES.items():
+        results[key] = estimate_impact(diameter_km, velocity_kms, dens, impact_angle_deg)
+    return jsonify(results)
 
 
 if __name__ == "__main__":
