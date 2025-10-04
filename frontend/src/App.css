@@ -40,3 +40,112 @@
 .read-the-docs {
   color: #888;
 }
+
+/* New scene styles for asteroid simulation */
+.scene {
+  position: relative;
+  min-height: 100vh;
+  background-color: #252850; /* darker blue background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* star field layer */
+.scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-image:
+    radial-gradient(circle at 5% 10%, #808080 1px, transparent 1px),
+    radial-gradient(circle at 12% 40%, #808080 1.5px, transparent 1.5px),
+    radial-gradient(circle at 20% 20%, #808080 0.8px, transparent 0.8px),
+    radial-gradient(circle at 28% 75%, #808080 2px, transparent 2px),
+    radial-gradient(circle at 36% 58%, #808080 1px, transparent 1px),
+    radial-gradient(circle at 44% 12%, #808080 0.9px, transparent 0.9px),
+    radial-gradient(circle at 52% 84%, #808080 1.7px, transparent 1.7px),
+    radial-gradient(circle at 60% 32%, #808080 1px, transparent 1px),
+    radial-gradient(circle at 68% 48%, #808080 0.7px, transparent 0.7px),
+    radial-gradient(circle at 76% 22%, #808080 1.2px, transparent 1.2px),
+    radial-gradient(circle at 84% 66%, #808080 1px, transparent 1px),
+    radial-gradient(circle at 92% 40%, #808080 0.9px, transparent 0.9px),
+    radial-gradient(circle at 50% 50%, #808080 0.8px, transparent 0.8px),
+    radial-gradient(circle at 15% 80%, #808080 1px, transparent 1px),
+    radial-gradient(circle at 85% 10%, #808080 1.6px, transparent 1.6px),
+    radial-gradient(circle at 70% 88%, #808080 1px, transparent 1px),
+    radial-gradient(circle at 38% 32%, #808080 0.9px, transparent 0.9px),
+    radial-gradient(circle at 24% 52%, #808080 1.1px, transparent 1.1px),
+    radial-gradient(circle at 56% 14%, #808080 0.8px, transparent 0.8px);
+  z-index: 0;
+}
+
+.center {
+  position: relative;
+  z-index: 1; /* place content above the star layer */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+.asteroid {
+  width: 320px;
+  max-width: 80vw;
+  height: auto;
+  filter: drop-shadow(0 12px 18px rgba(0,0,0,0.35));
+}
+
+.map-wrapper {
+  width: min(1000px, 90vw);
+  height: 60vh;
+  max-height: 720px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.map-wrapper .leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.continue-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  background: linear-gradient(180deg, #bfe9ff 0%, #9fe0ff 100%);
+  border: none;
+  padding: 0.8rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #03314b;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  z-index: 2000;
+}
+
+.continue-btn:hover {
+  transform: translateY(-2px);
+  transition: transform 120ms ease;
+}
+
+.simulate-btn {
+  background: linear-gradient(180deg, #bfe9ff 0%, #9fe0ff 100%);
+  border: none;
+  padding: 0.9rem 2rem;
+  border-radius: 999px; /* pill */
+  font-weight: 600;
+  color: #03314b;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  text-transform: lowercase;
+}
+
+.simulate-btn:active {
+  transform: translateY(2px) scale(0.995);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+}
