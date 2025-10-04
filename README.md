@@ -16,5 +16,3 @@ Space debris and meteor impacts pose significant threats to Earth and space infr
 - Predict potential impact trajectories
 - Assess impact risks and damage potential
 - Provide early warning systems
-
-*Built with passion for planetary defense during NASA Space Apps Challenge 2024* 🚀🌍
