@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-Impactor 2024 - Flask Backend API
-NASA Space Apps Challenge 2024
-"""
-
 import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
