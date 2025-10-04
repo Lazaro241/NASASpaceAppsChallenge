@@ -149,3 +149,73 @@
   transform: translateY(2px) scale(0.995);
   box-shadow: 0 3px 8px rgba(0,0,0,0.18);
 }
+
+.asteroids-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.asteroids-list li {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.asteroids-list li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.asteroids-list li.selected {
+  background-color: rgba(100, 108, 255, 0.3);
+  color: #ffffff;
+}
+
+.content-wrapper {
+  display: flex;
+  width: 100%;
+  max-width: 1280px;
+  gap: 2rem;
+}
+
+.asteroids-list {
+  flex: 1;
+  text-align: left;
+}
+
+.asteroid-details {
+  width: 300px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.asteroid-details h3 {
+  margin-top: 0;
+  color: #ffffff;
+}
+
+.asteroid-details ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.asteroid-details li {
+  margin: 0.5rem 0;
+  color: #ffffff;
+}
+
+.asteroid-details strong {
+  color: #bfe9ff;
+}
+
+.impact-message {
+  color: #ffffff;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
