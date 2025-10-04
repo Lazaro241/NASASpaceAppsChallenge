@@ -98,7 +98,6 @@ def asteroids_summary():
 @app.route("/api/impact", methods=["POST"])
 def impact():
     data = request.get_json()
-    diameter_km = data.get("diameter_km", 1)
     velocity_kms=data.get("velocity_kms", 20)
     diameter_km=data.get("diameter_km", 1)
     impact_angle_deg=data.get("angle", 45)
