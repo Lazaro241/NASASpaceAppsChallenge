@@ -109,6 +109,8 @@ function App() {
       <main className="center-area">
         {!simulating && (
           <>
+            <p className="app-title">ASTEROID IMPACT SIMULATOR</p>
+            <p className="app-subtitle">Discover the potential impact of asteroids on Earth</p>  
             <div className="asteroid-wrap">
               <img src={fireImage} alt="Fire" className="asteroid-fire" />
               <img src={asteroidImage} alt="Asteroid" className="asteroid" />
