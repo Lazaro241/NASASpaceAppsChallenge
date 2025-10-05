@@ -5,8 +5,10 @@ import os
 import time
 import requests
 from impact_calculations import DENSITIES, estimate_impact
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # Simple in-memory cache to avoid spamming external API during development
 # cache structure: { cache_key: (timestamp, data) }

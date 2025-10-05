@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import asteroidImage from './assets/asteroid.png'
 import fireImage from './assets/fire.png'
+// details are provided by the backend API; no local fallback
 
 function Star({ style }) {
   return <div className="star" style={style} />
@@ -15,6 +16,11 @@ function App() {
   const [markerPos, setMarkerPos] = useState(null)
   const [selectedLat, setSelectedLat] = useState(null)
   const [selectedLng, setSelectedLng] = useState(null)
+  const [showAsteroidList, setShowAsteroidList] = useState(false)
+  const [selectedAsteroidId, setSelectedAsteroidId] = useState(null)
+  const [asteroids, setAsteroids] = useState([])
+  const [loadingAsteroids, setLoadingAsteroids] = useState(false)
+  const [error, setError] = useState(null)
   // generate a fixed set of random star positions on mount
   const starCount = 60
   const stars = []
@@ -68,6 +74,21 @@ function App() {
     return null
   }
 
+  useEffect(() => {
+  if (showAsteroidList) {
+    setLoadingAsteroids(true)
+    setError(null)
+    fetch('http://127.0.0.1:5000/api/asteroids-summary')
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+        return res.json()
+      })
+      .then((data) => setAsteroids(data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoadingAsteroids(false))
+  }
+}, [showAsteroidList])
+
   return (
     <div className="app-root">
       <div className="starfield" aria-hidden>
@@ -87,7 +108,7 @@ function App() {
           </>
         )}
 
-        {simulating && (
+        {simulating && !showAsteroidList && (
           <div className="map-area" role="region" aria-label="Simulation map">
             <div className="map-header">📍CHOOSE A PLACE</div>
             <MapContainer center={[0, 0]} zoom={2} scrollWheelZoom={false} className="leaflet-map">
@@ -101,9 +122,64 @@ function App() {
               )}
             </MapContainer>
             {selectedLat !== null && selectedLng !== null && (
-              <button className="next-btn">NEXT</button>
+              <button className="next-btn" onClick={() => setShowAsteroidList(true)}>NEXT</button>
             )}
           </div>
+        )}
+
+        {showAsteroidList && (
+          <div className="asteroid-list-area" role="region" aria-label="Asteroid chooser">
+            <div className="map-header">CHOOSE AN ASTEROID</div>
+            <button className="back-btn" onClick={() => setShowAsteroidList(false)}>BACK</button>
+
+            {loadingAsteroids && <p>Loading asteroids...</p>}
+            {error && <p className="error">Error: {error}</p>}
+
+            {!loadingAsteroids && !error && (
+              <ul className="asteroid-list">
+                {asteroids.map((a) => (
+                  <li key={a.id} className={selectedAsteroidId === a.id ? 'selected' : ''}>
+                    <label>
+                      <input
+                        type="radio"
+                        name="asteroid"
+                        value={a.id}
+                        checked={selectedAsteroidId === a.id}
+                        onChange={() => setSelectedAsteroidId(a.id)}
+                      />
+                      <span className="asteroid-item">{a.name} — {a.id}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+        {/* Sidebar: show when an asteroid is selected */}
+        {selectedAsteroidId && (
+          <aside className={`asteroid-sidebar ${selectedAsteroidId ? 'open' : ''}`} aria-live="polite">
+            <button className="sidebar-close" onClick={() => setSelectedAsteroidId(null)}>×</button>
+            {(() => {
+              // Use the fetched asteroids data from the API only
+              const details = asteroids.find(a => a.id === selectedAsteroidId) || null
+              const name = details ? details.name : selectedAsteroidId
+              return (
+                <div className="sidebar-content">
+                  <h3>{name}</h3>
+                  {details ? (
+                    <>
+                      <p><strong>Name:</strong> {name}</p>
+                      <p><strong>Date:</strong> {details.date}</p>
+                      <p><strong>Diameter(km):</strong> {details.diameter_km}</p>
+                      <p><strong>Velocity(km/s):</strong> {details.velocity_kms}</p>
+                    </>
+                  ) : (
+                    <p>Details not available. Ensure the backend `/api/asteroids-summary` returned the asteroid data.</p>
+                  )}
+                </div>
+              )
+            })()}
+          </aside>
         )}
       </main>
     </div>

@@ -135,10 +135,100 @@
 	box-shadow: 0 6px 14px rgba(0,0,0,0.35);
 }
 
+.back-btn {
+	position: absolute;
+	left: -6px;
+	top: -36px;
+	z-index: 6;
+	background: #ffffff22;
+	color: white;
+	border: 1px solid rgba(255,255,255,0.12);
+	padding: 8px 12px;
+	border-radius: 8px;
+	cursor: pointer;
+}
+
+.asteroid-list-area {
+	width: min(720px, 85vw);
+	height: min(480px, 60vh);
+	z-index: 4;
+	padding: 48px 24px 24px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	align-items: stretch;
+	justify-content: flex-start;
+}
+
+.asteroid-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	overflow-y: auto;
+}
+
+.asteroid-list li {
+	padding: 8px 12px;
+	border-radius: 8px;
+	margin-bottom: 8px;
+	background: rgba(255,255,255,0.03);
+}
+
+/* Make asteroid list items look clickable */
+.asteroid-list li {
+	cursor: pointer;
+}
+
+.asteroid-list li.selected {
+	background: rgba(30,144,255,0.18);
+}
+
+.asteroid-item {
+	margin-left: 8px;
+	color: #fff;
+}
+
 /* Responsive tweaks */
 @media (max-width: 480px) {
 	.asteroid { width: 160px }
 	.simulate-btn { padding: 10px 20px }
 }
+
+/* Sidebar for asteroid details */
+.asteroid-sidebar {
+	position: fixed;
+	right: -360px;
+	top: 0;
+	height: 100%;
+	width: 320px;
+	background: linear-gradient(180deg, #081226 0%, #041221 100%);
+	box-shadow: -8px 0 24px rgba(0,0,0,0.6);
+	padding: 20px;
+	z-index: 9999;
+	transition: right 220ms ease;
+	color: #fff;
+}
+
+.asteroid-sidebar.open {
+	right: 0;
+}
+
+.sidebar-close {
+	position: absolute;
+	left: 8px;
+	top: 8px;
+	background: transparent;
+	border: none;
+	color: #fff;
+	font-size: 22px;
+	cursor: pointer;
+}
+
+.sidebar-content h3 {
+	margin-top: 28px;
+	margin-bottom: 12px;
+}
+
+.sidebar-content p { margin: 8px 0 }
 
 
