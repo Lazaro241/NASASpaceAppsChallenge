@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import 'leaflet/dist/leaflet.css'
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMapEvents, Circle } from 'react-leaflet'
 import L from 'leaflet'
 import asteroidImage from './assets/asteroid.png'
 import fireImage from './assets/fire.png'
 // details are provided by the backend API; no local fallback
+
+// Color map shared by legend and map circles
+const COMPOSITION_COLOR = { C: '#ff4500', S: '#ffa500', M: '#ff69b4' }
+// crater variants (slightly muted) for crater circles
+const COMPOSITION_CRATER_COLOR = { C: '#3d3b6cff', S: '#3c7a37ff', M: '#762249ff' }
 
 function Star({ style }) {
   return <div className="star" style={style} />
@@ -227,12 +232,64 @@ function App() {
           {/* Final full-screen map shown after CONTINUE */}
           {showFinalMap && markerPos && (
             <div className="final-map-wrap">
+              {/* Left-side legend explaining composition colors */}
+              <div className="impact-legend" aria-hidden>
+                <h5>Composition legend</h5>
+                <div className="legend-section">
+                  <div className="legend-section-title">Shockwave</div>
+                  <ul>
+                    {Object.keys(COMPOSITION_COLOR).map((k) => (
+                      <li key={`s-${k}`}><span className="swatch" style={{ background: COMPOSITION_COLOR[k] }} /> {k}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="legend-section">
+                  <div className="legend-section-title">Crater</div>
+                  <ul>
+                    {Object.keys(COMPOSITION_CRATER_COLOR).map((k) => (
+                      <li key={`c-${k}`}><span className="swatch crater-swatch" style={{ background: COMPOSITION_CRATER_COLOR[k] }} /> {k}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="legend-note">Shockwave = filled circle; Crater = dashed outline (km)</div>
+              </div>
               <MapContainer center={markerPos} zoom={6} scrollWheelZoom={false} className="final-map">
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 <Marker position={markerPos} />
+                {/* Draw shockwave circles (convert km -> meters) */}
+                {impactResult && Object.keys(impactResult).map((key) => {
+                  const r = impactResult[key]
+                  if (!r) return null
+                  const elements = []
+                  if (r.shockwave_radius_km) {
+                    const radiusMeters = Number(r.shockwave_radius_km) * 1000
+                    const fillColor = COMPOSITION_COLOR[key] || '#3388ff'
+                    elements.push(
+                      <Circle
+                        key={`shock-${key}`}
+                        center={markerPos}
+                        radius={radiusMeters}
+                        pathOptions={{ color: fillColor, fillColor: fillColor, fillOpacity: 0.15 }}
+                      />
+                    )
+                  }
+                  if (r.crater_radius_km) {
+                    const craterMeters = Number(r.crater_radius_km) * 1000
+                    const strokeColor = COMPOSITION_CRATER_COLOR[key] || '#7fb3ff'
+                    elements.push(
+                      <Circle
+                        key={`crater-${key}`}
+                        center={markerPos}
+                        radius={craterMeters}
+                        pathOptions={{ color: strokeColor, weight: 2, fillOpacity: 0, dashArray: '6 6' }}
+                      />
+                    )
+                  }
+                  return elements
+                })}
               </MapContainer>
               {/* Impact result floating panel (bottom-right) */}
               <div className="impact-panel" aria-live="polite">
