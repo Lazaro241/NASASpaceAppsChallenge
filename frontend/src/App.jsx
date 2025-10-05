@@ -247,7 +247,7 @@ function App() {
                   <div className="legend-section-title">Shockwave</div>
                   <ul>
                     {Object.keys(COMPOSITION_COLOR).map((k) => (
-                      <li key={`s-${k}`}><span className="swatch" style={{ background: COMPOSITION_COLOR[k] }} /> {k}</li>
+                      <li key={`s-${k}`}><span className="swatch" style={{ background: COMPOSITION_COLOR[k] }} /> {compositionMap[k] || k}</li>
                     ))}
                   </ul>
                 </div>
@@ -255,7 +255,7 @@ function App() {
                   <div className="legend-section-title">Crater</div>
                   <ul>
                     {Object.keys(COMPOSITION_CRATER_COLOR).map((k) => (
-                      <li key={`c-${k}`}><span className="swatch crater-swatch" style={{ background: COMPOSITION_CRATER_COLOR[k] }} /> {k}</li>
+                      <li key={`c-${k}`}><span className="swatch crater-swatch" style={{ background: COMPOSITION_CRATER_COLOR[k] }} /> {compositionMap[k] || k}</li>
                     ))}
                   </ul>
                 </div>
@@ -321,7 +321,6 @@ function App() {
                       )
                     })}
                     <div className="impact-meta">(Results shown for all compositions)</div>
-                    <button className="impact-close" onClick={() => setImpactResult(null)}>Close</button>
                   </div>
                 )}
               </div>
