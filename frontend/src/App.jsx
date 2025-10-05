@@ -45,6 +45,12 @@ function App() {
     setSimulating(true)
   }
 
+  const compositionMap = {
+  C: "Carbonaceous",
+  S: "Stony",
+  M: "Metallic"
+  };
+
   // ensure the default marker icon is loaded correctly (fix for some bundlers)
   useEffect(() => {
     // Use CDN-hosted marker icons to avoid bundler asset issues
@@ -306,7 +312,7 @@ function App() {
                       if (!r) return null
                       return (
                         <div key={key} className="impact-entry">
-                          <div className="impact-entry-header">Composition: {key}</div>
+                          <div className="impact-entry-header">Composition: {compositionMap[key] || key}</div>
                           <p><strong>Shockwave radius:</strong> {r.shockwave_radius_km} km</p>
                           <p><strong>Crater Radius:</strong> {r.crater_radius_km} km</p>
                           <p><strong>Impact Energy:</strong> {r.energy_megatons ? r.energy_megatons.toFixed(2) : 0} MT</p>
