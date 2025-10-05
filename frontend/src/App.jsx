@@ -19,6 +19,10 @@ function App() {
   const [showAsteroidList, setShowAsteroidList] = useState(false)
   const [selectedAsteroidId, setSelectedAsteroidId] = useState(null)
   const [asteroids, setAsteroids] = useState([])
+  const [showFinalMap, setShowFinalMap] = useState(false)
+  const [impactResult, setImpactResult] = useState(null)
+  const [impactLoading, setImpactLoading] = useState(false)
+  const [impactError, setImpactError] = useState(null)
   const [loadingAsteroids, setLoadingAsteroids] = useState(false)
   const [error, setError] = useState(null)
   // generate a fixed set of random star positions on mount
@@ -181,6 +185,82 @@ function App() {
             })()}
           </aside>
         )}
+          {/* CONTINUE button: shows when an asteroid is selected. Positioned above the sidebar */}
+          {selectedAsteroidId && !showFinalMap && (
+            <button
+              className="continue-btn"
+              onClick={async () => {
+                // Show only the final map centered on the previously selected marker
+                console.log('CONTINUE clicked with asteroid:', selectedAsteroidId)
+                // prepare impact payload using asteroid summary if available
+                const details = asteroids.find(a => a.id === selectedAsteroidId) || {}
+                const payload = {
+                  diameter_km: details.diameter_km || 1,
+                  velocity_kms: details.velocity_kms || 20,
+                  angle: 45
+                }
+                setImpactLoading(true)
+                setImpactError(null)
+                try {
+                  const res = await fetch('http://127.0.0.1:5000/api/impact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                  })
+                  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+                  const data = await res.json()
+                  setImpactResult(data)
+                  // show final map as requested
+                  setShowFinalMap(true)
+                } catch (err) {
+                  console.error('Impact API error', err)
+                  setImpactError(err.message || String(err))
+                } finally {
+                  setImpactLoading(false)
+                }
+              }}
+            >
+              CONTINUE
+            </button>
+          )}
+
+          {/* Final full-screen map shown after CONTINUE */}
+          {showFinalMap && markerPos && (
+            <div className="final-map-wrap">
+              <MapContainer center={markerPos} zoom={6} scrollWheelZoom={false} className="final-map">
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker position={markerPos} />
+              </MapContainer>
+              {/* Impact result floating panel (bottom-right) */}
+              <div className="impact-panel" aria-live="polite">
+                {impactLoading && <div className="impact-loading">Calculating impact...</div>}
+                {impactError && <div className="impact-error">Error: {impactError}</div>}
+                {impactResult && (
+                  // impactResult is an object keyed by density types (C, S, M)
+                  <div className="impact-results">
+                    <h4>Impact results</h4>
+                    {Object.keys(impactResult).map((key) => {
+                      const r = impactResult[key]
+                      if (!r) return null
+                      return (
+                        <div key={key} className="impact-entry">
+                          <div className="impact-entry-header">Composition: {key}</div>
+                          <p><strong>Shockwave radius:</strong> {r.shockwave_radius_km} km</p>
+                          <p><strong>Crater Radius:</strong> {r.crater_radius_km} km</p>
+                          <p><strong>Comparison summary:</strong> {r.comparison ? r.comparison.summary : ''}</p>
+                        </div>
+                      )
+                    })}
+                    <div className="impact-meta">(Results shown for all compositions)</div>
+                    <button className="impact-close" onClick={() => setImpactResult(null)}>Close</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
       </main>
     </div>
   )
