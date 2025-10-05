@@ -307,6 +307,7 @@ function App() {
                           <div className="impact-entry-header">Composition: {key}</div>
                           <p><strong>Shockwave radius:</strong> {r.shockwave_radius_km} km</p>
                           <p><strong>Crater Radius:</strong> {r.crater_radius_km} km</p>
+                          <p><strong>Impact Energy:</strong> {r.energy_megatons ? r.energy_megatons.toFixed(2) : 0} MT</p>
                           <p><strong>Comparison summary:</strong> {r.comparison ? r.comparison.summary : ''}</p>
                         </div>
                       )
