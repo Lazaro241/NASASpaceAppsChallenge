@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import 'leaflet/dist/leaflet.css'
-import { MapContainer, TileLayer } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
+import L from 'leaflet'
 import asteroidImage from './assets/asteroid.png'
 import fireImage from './assets/fire.png'
 
@@ -11,6 +12,7 @@ function Star({ style }) {
 
 function App() {
   const [simulating, setSimulating] = useState(false)
+  const [markerPos, setMarkerPos] = useState(null)
   // generate a fixed set of random star positions on mount
   const starCount = 60
   const stars = []
@@ -24,6 +26,26 @@ function App() {
 
   const handleSimulate = () => {
     setSimulating(true)
+  }
+
+  // ensure the default marker icon is loaded correctly (fix for some bundlers)
+  useEffect(() => {
+    // Use CDN-hosted marker icons to avoid bundler asset issues
+    delete L.Icon.Default.prototype._getIconUrl
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+    })
+  }, [])
+
+  function ClickHandler() {
+    useMapEvents({
+      click(e) {
+        setMarkerPos([e.latlng.lat, e.latlng.lng])
+      }
+    })
+    return null
   }
 
   return (
@@ -52,6 +74,10 @@ function App() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
+              <ClickHandler />
+              {markerPos && (
+                <Marker position={markerPos} />
+              )}
             </MapContainer>
           </div>
         )}
