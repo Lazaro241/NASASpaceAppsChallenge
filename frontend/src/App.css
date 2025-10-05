@@ -1,0 +1,538 @@
+/* Root and layout */
+.app-root {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    background: radial-gradient(ellipse at bottom, #1a1a2e 0%, #0d0d1b 60%);
+    overflow: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Starfield layer with subtle animation */
+.starfield {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    animation: twinkle 10s infinite ease-in-out;
+}
+
+.star {
+    position: absolute;
+    background-color: #e0e0e0;
+    border-radius: 50%;
+    filter: blur(0.3px);
+    transform: translate(-50%, -50%);
+    animation: glow 3s infinite alternate ease-in-out;
+}
+
+/* Keyframes for star twinkling */
+@keyframes twinkle {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 0.4; }
+}
+
+@keyframes glow {
+    0% { box-shadow: 0 0 2px 0 rgba(255, 255, 255, 0.3); }
+    100% { box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.5); }
+}
+
+.app-title {
+    color: #ffffff;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    font-size: 50px;
+    z-index: 5;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.app-subtitle {
+    color: #cbd5e1;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    font-size: 25px;
+    margin-top: -80px;
+    margin-bottom: 5px;
+    z-index: 5;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Center content */
+.center-area {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 20px;
+}
+
+/* Asteroid and fire */
+.asteroid-wrap {
+    position: relative;
+    width: fit-content;
+    display: inline-block;
+}
+
+.asteroid {
+    width: 200px;
+    max-width: 65vw;
+    height: auto;
+    display: block;
+    position: sticky;
+    margin-top: 50px;
+    margin-bottom: 10px;
+    z-index: 3;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+}
+
+.asteroid-fire {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-30%, -75%) rotate(30deg);
+    width: 250px;
+    max-width: 75vw;
+    height: auto;
+    z-index: 2;
+    opacity: 0.9;
+    pointer-events: none;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    filter: brightness(1.1) drop-shadow(0 0 15px rgba(255, 100, 0, 0.5));
+}
+
+/* Simulate button */
+.simulate-btn {
+    background: linear-gradient(135deg, #1e90ff 0%, #007bff 100%);
+    color: #ffffff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+    margin-top: 24px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.simulate-btn:hover {
+    background: linear-gradient(135deg, #1e90ff 0%, #005bb5 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 123, 255, 0.4);
+}
+
+.simulate-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 10px rgba(0, 123, 255, 0.2);
+}
+
+/* Map area */
+.map-area {
+    width: min(800px, 90vw);
+    height: min(500px, 65vh);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 12px;
+}
+
+.leaflet-map {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Map header */
+.map-header {
+    position: absolute;
+    top: calc(50% - 32vh - 48px);
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    font-size: 28px;
+    z-index: 5;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Next and back buttons */
+.next-btn, .back-btn, .start-over-btn {
+    background: linear-gradient(135deg, #1e90ff 0%, #007bff 100%);
+    color: #ffffff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.next-btn {
+    position: absolute;
+    right: -40px;
+    bottom: -60px;
+    z-index: 6;
+}
+
+.back-btn {
+    position: absolute;
+    left: -10px;
+    top: -40px;
+    z-index: 6;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.start-over-btn {
+    position: fixed;
+    left: 24px;
+    bottom: 24px;
+    z-index: 11100;
+    background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%);
+    padding: 14px 20px;
+    font-size: 15px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.next-btn:hover, .back-btn:hover, .start-over-btn:hover {
+    background: linear-gradient(135deg, #1e90ff 0%, #005bb5 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 123, 255, 0.4);
+}
+
+.start-over-btn:hover {
+    background: linear-gradient(135deg, #ff6666 0%, #e60000 100%);
+}
+
+.next-btn:active, .back-btn:active, .start-over-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 10px rgba(0, 123, 255, 0.2);
+}
+
+/* Asteroid list area */
+.asteroid-list-area {
+    width: min(800px, 90vw);
+    height: min(500px, 65vh);
+    z-index: 4;
+    padding: 56px 28px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+    justify-content: flex-start;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Asteroid list */
+.asteroid-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+}
+
+.asteroid-list li {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: background 0.2s ease;
+}
+
+.asteroid-list li:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.asteroid-list li.selected {
+    background: rgba(30, 144, 255, 0.25);
+    box-shadow: 0 0 10px rgba(30, 144, 255, 0.5);
+}
+
+.asteroid-item {
+    margin-left: 12px;
+    color: #e6eef8;
+    font-size: 15px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 480px) {
+    .asteroid { width: 180px; }
+    .asteroid-fire { width: 280px; }
+    .simulate-btn { padding: 10px 24px; font-size: 14px; }
+    .map-area { width: 95vw; height: 60vh; }
+    .asteroid-list-area { width: 95vw; height: 60vh; }
+    .map-header { font-size: 22px; }
+}
+
+/* Sidebar for asteroid details */
+.asteroid-sidebar {
+    position: fixed;
+    right: -400px;
+    top: 0;
+    height: 100%;
+    width: 360px;
+    background: linear-gradient(180deg, #0a1433 0%, #05102a 100%);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
+    padding: 24px;
+    z-index: 9999;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #e6eef8;
+}
+
+.asteroid-sidebar.open {
+    right: 0;
+}
+
+.sidebar-close {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.sidebar-close:hover {
+    color: #1e90ff;
+}
+
+.sidebar-content h3 {
+    margin-top: 32px;
+    margin-bottom: 16px;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.sidebar-content p {
+    margin: 10px 0;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Continue button */
+.continue-btn {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 10000;
+    background: linear-gradient(135deg, #1e90ff 0%, #007bff 100%);
+    color: #ffffff;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0, 123, 255, 0.4);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+}
+
+.continue-btn:hover {
+    background: linear-gradient(135deg, #1e90ff 0%, #005bb5 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(0, 123, 255, 0.5);
+}
+
+.continue-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* Final map full-screen wrapper */
+.final-map-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 11000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0d0d1b;
+}
+
+.final-map {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Impact result floating panel */
+.impact-panel {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 11100;
+    max-width: 360px;
+    color: #e6eef8;
+}
+
+.impact-results {
+    background: linear-gradient(180deg, rgba(10, 20, 51, 0.95) 0%, rgba(5, 16, 42, 0.95) 100%);
+    padding: 18px 20px;
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+}
+
+.impact-results h4 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.impact-results p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.impact-meta {
+    font-size: 13px;
+    color: #cbd5e1;
+    margin-top: 12px;
+}
+
+.impact-close {
+    margin-top: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s ease, border 0.2s ease;
+}
+
+.impact-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Impact loading and error states */
+.impact-loading, .impact-error {
+    background: rgba(0, 0, 0, 0.7);
+    color: #ffffff;
+    padding: 12px 16px;
+    border-radius: 12px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+}
+
+/* Impact entry */
+.impact-entry {
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.impact-entry-header {
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 15px;
+}
+
+/* Left-side legend for composition colors */
+.impact-legend {
+    position: fixed;
+    left: 24px;
+    top: 120px;
+    z-index: 11100;
+    background: linear-gradient(180deg, rgba(10, 20, 51, 0.95), rgba(5, 16, 42, 0.95));
+    color: #e6eef8;
+    padding: 16px 18px;
+    border-radius: 12px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+    min-width: 180px;
+    font-size: 14px;
+}
+
+.impact-legend h5 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.impact-legend ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.impact-legend li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #e6eef8;
+}
+
+.impact-legend .swatch {
+    width: 20px;
+    height: 14px;
+    display: inline-block;
+    border-radius: 4px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.legend-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #cbd5e1;
+}
+
+/* Legend section specifics */
+.impact-legend .legend-section {
+    margin-top: 12px;
+}
+
+.impact-legend .legend-section-title {
+    font-size: 13px;
+    color: #dbe7f5;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.impact-legend .crater-swatch {
+    border-radius: 3px;
+    box-shadow: none;
+    opacity: 0.9;
+}
+
+/* Responsive tweaks for smaller screens */
+@media (max-width: 720px) {
+    .impact-legend {
+        left: 12px;
+        top: 12px;
+        padding: 12px;
+        min-width: 160px;
+    }
+    .impact-panel {
+        right: 12px;
+        bottom: 12px;
+        max-width: 300px;
+    }
+}
