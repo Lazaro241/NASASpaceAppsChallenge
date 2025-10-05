@@ -39,6 +39,28 @@
     100% { box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.5); }
 }
 
+
+.app-title {
+    
+    color: #ffffff;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    font-size: 50px;
+    z-index: 5;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.app-subtitle {
+    color: #cbd5e1;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    font-size: 25px;
+    margin-top: -80px;
+    margin-bottom: 5px;
+    z-index: 5;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+}
+
 /* Center content */
 .center-area {
     position: relative;
@@ -57,14 +79,17 @@
     display: inline-block;
 }
 
+
+
+
 .asteroid {
     width: 200px;
     max-width: 65vw;
     height: auto;
     display: block;
-    position: relative;
-    margin-top: 40px;
-    margin-bottom: 20px;
+    position: sticky;
+    margin-top: 50px;
+    margin-bottom: 10px;
     z-index: 3;
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
 }
@@ -74,13 +99,13 @@
     left: 50%;
     top: 50%;
     transform: translate(-30%, -75%) rotate(30deg);
-    width: 320px;
+    width: 250px;
     max-width: 75vw;
     height: auto;
     z-index: 2;
     opacity: 0.9;
     pointer-events: none;
-    margin-top: 20px;
+    margin-top: 5px;
     margin-bottom: 20px;
     filter: brightness(1.1) drop-shadow(0 0 15px rgba(255, 100, 0, 0.5));
 }
