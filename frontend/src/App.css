@@ -92,6 +92,23 @@
 	box-shadow: 0 2px 4px rgba(2,32,58,0.08);
 }
 
+
+.map-area {
+	width: min(720px, 85vw);
+	height: min(480px, 60vh);
+	z-index: 4; /* above asteroid and fire */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.leaflet-map {
+	width: 100%;
+	height: 100%;
+	border-radius: 12px;
+	box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+}
+
 /* Responsive tweaks */
 @media (max-width: 480px) {
 	.asteroid { width: 160px }

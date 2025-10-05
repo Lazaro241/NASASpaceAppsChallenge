@@ -1,5 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
+import 'leaflet/dist/leaflet.css'
+import { MapContainer, TileLayer } from 'react-leaflet'
 import asteroidImage from './assets/asteroid.png'
 import fireImage from './assets/fire.png'
 
@@ -8,6 +10,7 @@ function Star({ style }) {
 }
 
 function App() {
+  const [simulating, setSimulating] = useState(false)
   // generate a fixed set of random star positions on mount
   const starCount = 60
   const stars = []
@@ -19,6 +22,10 @@ function App() {
     stars.push({ width: size, height: size, top: `${top}%`, left: `${left}%`, opacity })
   }
 
+  const handleSimulate = () => {
+    setSimulating(true)
+  }
+
   return (
     <div className="app-root">
       <div className="starfield" aria-hidden>
@@ -28,11 +35,26 @@ function App() {
       </div>
 
       <main className="center-area">
-        <div className="asteroid-wrap">
-          <img src={fireImage} alt="Fire" className="asteroid-fire" />
-          <img src={asteroidImage} alt="Asteroid" className="asteroid" />
-        </div>
-        <button className="simulate-btn">SIMULATE</button>
+        {!simulating && (
+          <>
+            <div className="asteroid-wrap">
+              <img src={fireImage} alt="Fire" className="asteroid-fire" />
+              <img src={asteroidImage} alt="Asteroid" className="asteroid" />
+            </div>
+            <button className="simulate-btn" onClick={handleSimulate}>SIMULATE</button>
+          </>
+        )}
+
+        {simulating && (
+          <div className="map-area" role="region" aria-label="Simulation map">
+            <MapContainer center={[0, 0]} zoom={2} scrollWheelZoom={false} className="leaflet-map">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            </MapContainer>
+          </div>
+        )}
       </main>
     </div>
   )
