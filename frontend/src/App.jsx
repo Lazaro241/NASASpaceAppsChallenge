@@ -99,7 +99,7 @@ function App() {
     if (showAsteroidList) {
       setLoadingAsteroids(true)
       setError(null)
-      fetch('http://127.0.0.1:5000/api/asteroids-summary')
+      fetch('https://nasaspaceappschallenge.onrender.com/api/asteroids-summary')
         .then((res) => {
           if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
           return res.json()
@@ -218,7 +218,7 @@ function App() {
               setImpactLoading(true)
               setImpactError(null)
               try {
-                const res = await fetch('http://127.0.0.1:5000/api/impact', {
+                 const res = await fetch('https://nasaspaceappschallenge.onrender.com/api/impact', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(payload)
