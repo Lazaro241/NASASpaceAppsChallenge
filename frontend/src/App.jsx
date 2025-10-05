@@ -5,11 +5,8 @@ import { MapContainer, TileLayer, Marker, useMapEvents, Circle } from 'react-lea
 import L from 'leaflet'
 import asteroidImage from './assets/asteroid.png'
 import fireImage from './assets/fire.png'
-// details are provided by the backend API; no local fallback
 
-// Color map shared by legend and map circles
 const COMPOSITION_COLOR = { C: '#ff4500', S: '#ffa500', M: '#ff69b4' }
-// crater variants (slightly muted) for crater circles
 const COMPOSITION_CRATER_COLOR = { C: '#3d3b6cff', S: '#3c7a37ff', M: '#762249ff' }
 
 function Star({ style }) {
@@ -30,11 +27,11 @@ function App() {
   const [impactError, setImpactError] = useState(null)
   const [loadingAsteroids, setLoadingAsteroids] = useState(false)
   const [error, setError] = useState(null)
-  // generate a fixed set of random star positions on mount
+
   const starCount = 60
   const stars = []
   for (let i = 0; i < starCount; i++) {
-    const size = Math.random() * 2 + 1 // 1 - 3px
+    const size = Math.random() * 2 + 1
     const top = Math.random() * 100
     const left = Math.random() * 100
     const opacity = Math.random() * 0.6 + 0.2
@@ -45,15 +42,26 @@ function App() {
     setSimulating(true)
   }
 
-  const compositionMap = {
-  C: "Carbonaceous",
-  S: "Stony",
-  M: "Metallic"
-  };
+  const handleBackToStart = () => {
+    setSimulating(false)
+    setMarkerPos(null)
+    setSelectedLat(null)
+    setSelectedLng(null)
+    setShowAsteroidList(false)
+    setSelectedAsteroidId(null)
+    setShowFinalMap(false)
+    setImpactResult(null)
+    setImpactLoading(false)
+    setImpactError(null)
+  }
 
-  // ensure the default marker icon is loaded correctly (fix for some bundlers)
+  const compositionMap = {
+    C: "Carbonaceous",
+    S: "Stony",
+    M: "Metallic"
+  }
+
   useEffect(() => {
-    // Use CDN-hosted marker icons to avoid bundler asset issues
     delete L.Icon.Default.prototype._getIconUrl
     L.Icon.Default.mergeOptions({
       iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -70,14 +78,12 @@ function App() {
         setMarkerPos([lat, lng])
         setSelectedLat(lat)
         setSelectedLng(lng)
-        // persist to localStorage
         try {
           localStorage.setItem('selectedLat', String(lat))
           localStorage.setItem('selectedLng', String(lng))
         } catch (err) {
-          // ignore storage errors (e.g., privacy mode)
+          // ignore
         }
-        // expose globally for quick access in console/tests
         try {
           window.selectedLat = lat
           window.selectedLng = lng
@@ -90,19 +96,19 @@ function App() {
   }
 
   useEffect(() => {
-  if (showAsteroidList) {
-    setLoadingAsteroids(true)
-    setError(null)
-    fetch('http://127.0.0.1:5000/api/asteroids-summary')
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
-        return res.json()
-      })
-      .then((data) => setAsteroids(data))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoadingAsteroids(false))
-  }
-}, [showAsteroidList])
+    if (showAsteroidList) {
+      setLoadingAsteroids(true)
+      setError(null)
+      fetch('http://127.0.0.1:5000/api/asteroids-summary')
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+          return res.json()
+        })
+        .then((data) => setAsteroids(data))
+        .catch((err) => setError(err.message))
+        .finally(() => setLoadingAsteroids(false))
+    }
+  }, [showAsteroidList])
 
   return (
     <div className="app-root">
@@ -172,12 +178,11 @@ function App() {
             )}
           </div>
         )}
-        {/* Sidebar: show when an asteroid is selected */}
+
         {selectedAsteroidId && (
           <aside className={`asteroid-sidebar ${selectedAsteroidId ? 'open' : ''}`} aria-live="polite">
             <button className="sidebar-close" onClick={() => setSelectedAsteroidId(null)}>×</button>
             {(() => {
-              // Use the fetched asteroids data from the API only
               const details = asteroids.find(a => a.id === selectedAsteroidId) || null
               const name = details ? details.name : selectedAsteroidId
               return (
@@ -198,134 +203,127 @@ function App() {
             })()}
           </aside>
         )}
-          {/* CONTINUE button: shows when an asteroid is selected. Positioned above the sidebar */}
-          {selectedAsteroidId && !showFinalMap && (
-            <button
-              className="continue-btn"
-              onClick={async () => {
-                // Show only the final map centered on the previously selected marker
-                console.log('CONTINUE clicked with asteroid:', selectedAsteroidId)
-                // prepare impact payload using asteroid summary if available
-                const details = asteroids.find(a => a.id === selectedAsteroidId) || {}
-                const payload = {
-                  diameter_km: details.diameter_km || 1,
-                  velocity_kms: details.velocity_kms || 20,
-                  angle: 45
-                }
-                setImpactLoading(true)
-                setImpactError(null)
-                try {
-                  const res = await fetch('http://127.0.0.1:5000/api/impact', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                  })
-                  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-                  const data = await res.json()
-                  setImpactResult(data)
-                  // show final map as requested
-                  setShowFinalMap(true)
-                } catch (err) {
-                  console.error('Impact API error', err)
-                  setImpactError(err.message || String(err))
-                } finally {
-                  setImpactLoading(false)
-                }
-              }}
-            >
-              CONTINUE
-            </button>
-          )}
 
-          {/* Final full-screen map shown after CONTINUE */}
-          {showFinalMap && markerPos && (
-            <div className="final-map-wrap">
-              {/* Left-side legend explaining composition colors */}
-              <div className="impact-legend" aria-hidden>
-                <h5>Composition legend</h5>
-                <div className="legend-section">
-                  <div className="legend-section-title">Shockwave</div>
-                  <ul>
-                    {Object.keys(COMPOSITION_COLOR).map((k) => (
-                      <li key={`s-${k}`}><span className="swatch" style={{ background: COMPOSITION_COLOR[k] }} /> {compositionMap[k] || k}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="legend-section">
-                  <div className="legend-section-title">Crater</div>
-                  <ul>
-                    {Object.keys(COMPOSITION_CRATER_COLOR).map((k) => (
-                      <li key={`c-${k}`}><span className="swatch crater-swatch" style={{ background: COMPOSITION_CRATER_COLOR[k] }} /> {compositionMap[k] || k}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="legend-note">Shockwave = filled circle; Crater = dashed outline (km)</div>
+        {selectedAsteroidId && !showFinalMap && (
+          <button
+            className="continue-btn"
+            onClick={async () => {
+              console.log('CONTINUE clicked with asteroid:', selectedAsteroidId)
+              const details = asteroids.find(a => a.id === selectedAsteroidId) || {}
+              const payload = {
+                diameter_km: details.diameter_km || 1,
+                velocity_kms: details.velocity_kms || 20,
+                angle: 45
+              }
+              setImpactLoading(true)
+              setImpactError(null)
+              try {
+                const res = await fetch('http://127.0.0.1:5000/api/impact', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                })
+                if (!res.ok) throw new Error(`HTTP ${res.status}`)
+                const data = await res.json()
+                setImpactResult(data)
+                setShowFinalMap(true)
+              } catch (err) {
+                console.error('Impact API error', err)
+                setImpactError(err.message || String(err))
+              } finally {
+                setImpactLoading(false)
+              }
+            }}
+          >
+            CONTINUE
+          </button>
+        )}
+
+        {showFinalMap && markerPos && (
+          <div className="final-map-wrap">
+            <div className="impact-legend" aria-hidden>
+              <h5>Composition legend</h5>
+              <div className="legend-section">
+                <div className="legend-section-title">Shockwave</div>
+                <ul>
+                  {Object.keys(COMPOSITION_COLOR).map((k) => (
+                    <li key={`s-${k}`}><span className="swatch" style={{ background: COMPOSITION_COLOR[k] }} /> {compositionMap[k] || k}</li>
+                  ))}
+                </ul>
               </div>
-              <MapContainer center={markerPos} zoom={6} scrollWheelZoom={false} className="final-map">
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <Marker position={markerPos} />
-                {/* Draw shockwave circles (convert km -> meters) */}
-                {impactResult && Object.keys(impactResult).map((key) => {
-                  const r = impactResult[key]
-                  if (!r) return null
-                  const elements = []
-                  if (r.shockwave_radius_km) {
-                    const radiusMeters = Number(r.shockwave_radius_km) * 1000
-                    const fillColor = COMPOSITION_COLOR[key] || '#3388ff'
-                    elements.push(
-                      <Circle
-                        key={`shock-${key}`}
-                        center={markerPos}
-                        radius={radiusMeters}
-                        pathOptions={{ color: fillColor, fillColor: fillColor, fillOpacity: 0.15 }}
-                      />
-                    )
-                  }
-                  if (r.crater_radius_km) {
-                    const craterMeters = Number(r.crater_radius_km) * 1000
-                    const strokeColor = COMPOSITION_CRATER_COLOR[key] || '#7fb3ff'
-                    elements.push(
-                      <Circle
-                        key={`crater-${key}`}
-                        center={markerPos}
-                        radius={craterMeters}
-                        pathOptions={{ color: strokeColor, weight: 2, fillOpacity: 0, dashArray: '6 6' }}
-                      />
-                    )
-                  }
-                  return elements
-                })}
-              </MapContainer>
-              {/* Impact result floating panel (bottom-right) */}
-              <div className="impact-panel" aria-live="polite">
-                {impactLoading && <div className="impact-loading">Calculating impact...</div>}
-                {impactError && <div className="impact-error">Error: {impactError}</div>}
-                {impactResult && (
-                  // impactResult is an object keyed by density types (C, S, M)
-                  <div className="impact-results">
-                    <h4>Impact results</h4>
-                    {Object.keys(impactResult).map((key) => {
-                      const r = impactResult[key]
-                      if (!r) return null
-                      return (
-                        <div key={key} className="impact-entry">
-                          <div className="impact-entry-header">Composition: {compositionMap[key] || key}</div>
-                          <p><strong>Shockwave radius:</strong> {r.shockwave_radius_km} km</p>
-                          <p><strong>Crater Radius:</strong> {r.crater_radius_km} km</p>
-                          <p><strong>Impact Energy:</strong> {r.energy_megatons ? r.energy_megatons.toFixed(2) : 0} MT</p>
-                          <p><strong>Comparison summary:</strong> {r.comparison ? r.comparison.summary : ''}</p>
-                        </div>
-                      )
-                    })}
-                    <div className="impact-meta">(Results shown for all compositions)</div>
-                  </div>
-                )}
+              <div className="legend-section">
+                <div className="legend-section-title">Crater</div>
+                <ul>
+                  {Object.keys(COMPOSITION_CRATER_COLOR).map((k) => (
+                    <li key={`c-${k}`}><span className="swatch crater-swatch" style={{ background: COMPOSITION_CRATER_COLOR[k] }} /> {compositionMap[k] || k}</li>
+                  ))}
+                </ul>
               </div>
+              <div className="legend-note">Shockwave = filled circle; Crater = dashed outline (km)</div>
             </div>
-          )}
+            <MapContainer center={markerPos} zoom={6} scrollWheelZoom={false} className="final-map">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={markerPos} />
+              {impactResult && Object.keys(impactResult).map((key) => {
+                const r = impactResult[key]
+                if (!r) return null
+                const elements = []
+                if (r.shockwave_radius_km) {
+                  const radiusMeters = Number(r.shockwave_radius_km) * 1000
+                  const fillColor = COMPOSITION_COLOR[key] || '#3388ff'
+                  elements.push(
+                    <Circle
+                      key={`shock-${key}`}
+                      center={markerPos}
+                      radius={radiusMeters}
+                      pathOptions={{ color: fillColor, fillColor: fillColor, fillOpacity: 0.15 }}
+                    />
+                  )
+                }
+                if (r.crater_radius_km) {
+                  const craterMeters = Number(r.crater_radius_km) * 1000
+                  const strokeColor = COMPOSITION_CRATER_COLOR[key] || '#7fb3ff'
+                  elements.push(
+                    <Circle
+                      key={`crater-${key}`}
+                      center={markerPos}
+                      radius={craterMeters}
+                      pathOptions={{ color: strokeColor, weight: 2, fillOpacity: 0, dashArray: '6 6' }}
+                    />
+                  )
+                }
+                return elements
+              })}
+            </MapContainer>
+            <div className="impact-panel" aria-live="polite">
+              {impactLoading && <div className="impact-loading">Calculating impact...</div>}
+              {impactError && <div className="impact-error">Error: {impactError}</div>}
+              {impactResult && (
+                <div className="impact-results">
+                  <h4>Impact results</h4>
+                  {Object.keys(impactResult).map((key) => {
+                    const r = impactResult[key]
+                    if (!r) return null
+                    return (
+                      <div key={key} className="impact-entry">
+                        <div className="impact-entry-header">Composition: {compositionMap[key] || key}</div>
+                        <p><strong>Shockwave radius:</strong> {r.shockwave_radius_km} km</p>
+                        <p><strong>Crater Radius:</strong> {r.crater_radius_km} km</p>
+                        <p><strong>Impact Energy:</strong> {r.energy_megatons ? r.energy_megatons.toFixed(2) : 0} MT</p>
+                        <p><strong>Comparison summary:</strong> {r.comparison ? r.comparison.summary : ''}</p>
+                      </div>
+                    )
+                  })}
+                  <div className="impact-meta">(Results shown for all compositions)</div>
+                </div>
+              )}
+            </div>
+            <button className="start-over-btn" onClick={handleBackToStart}>START OVER</button>
+          </div>
+        )}
       </main>
     </div>
   )

@@ -39,9 +39,7 @@
     100% { box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.5); }
 }
 
-
 .app-title {
-    
     color: #ffffff;
     font-weight: 900;
     letter-spacing: 1.5px;
@@ -78,9 +76,6 @@
     width: fit-content;
     display: inline-block;
 }
-
-
-
 
 .asteroid {
     width: 200px;
@@ -174,7 +169,7 @@
 }
 
 /* Next and back buttons */
-.next-btn, .back-btn {
+.next-btn, .back-btn, .start-over-btn {
     background: linear-gradient(135deg, #1e90ff 0%, #007bff 100%);
     color: #ffffff;
     border: none;
@@ -203,13 +198,29 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.next-btn:hover, .back-btn:hover {
+.start-over-btn {
+    position: fixed;
+    left: 24px;
+    bottom: 24px;
+    z-index: 11100;
+    background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%);
+    padding: 14px 20px;
+    font-size: 15px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.next-btn:hover, .back-btn:hover, .start-over-btn:hover {
     background: linear-gradient(135deg, #1e90ff 0%, #005bb5 100%);
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 123, 255, 0.4);
 }
 
-.next-btn:active, .back-btn:active {
+.start-over-btn:hover {
+    background: linear-gradient(135deg, #ff6666 0%, #e60000 100%);
+}
+
+.next-btn:active, .back-btn:active, .start-over-btn:active {
     transform: translateY(1px);
     box-shadow: 0 3px 10px rgba(0, 123, 255, 0.2);
 }
