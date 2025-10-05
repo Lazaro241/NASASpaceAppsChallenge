@@ -13,6 +13,8 @@ function Star({ style }) {
 function App() {
   const [simulating, setSimulating] = useState(false)
   const [markerPos, setMarkerPos] = useState(null)
+  const [selectedLat, setSelectedLat] = useState(null)
+  const [selectedLng, setSelectedLng] = useState(null)
   // generate a fixed set of random star positions on mount
   const starCount = 60
   const stars = []
@@ -42,7 +44,25 @@ function App() {
   function ClickHandler() {
     useMapEvents({
       click(e) {
-        setMarkerPos([e.latlng.lat, e.latlng.lng])
+        const lat = e.latlng.lat
+        const lng = e.latlng.lng
+        setMarkerPos([lat, lng])
+        setSelectedLat(lat)
+        setSelectedLng(lng)
+        // persist to localStorage
+        try {
+          localStorage.setItem('selectedLat', String(lat))
+          localStorage.setItem('selectedLng', String(lng))
+        } catch (err) {
+          // ignore storage errors (e.g., privacy mode)
+        }
+        // expose globally for quick access in console/tests
+        try {
+          window.selectedLat = lat
+          window.selectedLng = lng
+        } catch (err) {
+          // ignore
+        }
       }
     })
     return null
@@ -69,6 +89,7 @@ function App() {
 
         {simulating && (
           <div className="map-area" role="region" aria-label="Simulation map">
+            <div className="map-header">📍CHOOSE A PLACE</div>
             <MapContainer center={[0, 0]} zoom={2} scrollWheelZoom={false} className="leaflet-map">
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -79,6 +100,9 @@ function App() {
                 <Marker position={markerPos} />
               )}
             </MapContainer>
+            {selectedLat !== null && selectedLng !== null && (
+              <button className="next-btn">NEXT</button>
+            )}
           </div>
         )}
       </main>

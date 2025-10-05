@@ -70,16 +70,15 @@
 
 /* SIMULAR button: light blue, rounded corners, Arial Black */
 .simulate-btn {
-	background-color: #bfe9ff; /* light blue */
-	color: #02203a;
-	padding: 12px 28px;
+	background-color: #0061ba; /* light blue */
+	color: white;
+	padding: 10px 14px;
 	border: none;
-	border-radius: 18px;
+	border-radius: 8px;
 	cursor: pointer;
-	font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;
-	font-weight: 900;
+	font-weight: 700;
 	letter-spacing: 1px;
-	box-shadow: 0 4px 4px rgba(2,32,58,0.12);
+	box-shadow: 0 6px 14px rgba(0,0,0,0.35);
 	/* nudge button down a bit to increase spacing below the asteroid */
 	margin-top: 20px;
   margin-bottom: 0
@@ -107,6 +106,33 @@
 	height: 100%;
 	border-radius: 12px;
 	box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+}
+
+.map-header {
+	position: absolute;
+	top: calc(50% - 30vh - 44px); /* place above the map area */
+	left: 50%;
+	transform: translateX(-50%);
+	color: #ffffff;
+	font-weight: 780;
+	letter-spacing: 1px;
+	font-size: 24px;
+	z-index: 5;
+}
+
+.next-btn {
+	position: absolute;
+	right: -30px; /* slightly outside the map area */
+	bottom: -60px;
+	z-index: 6;
+	background-color: #0061ba;
+	color: white;
+	border: none;
+	padding: 10px 14px;
+	border-radius: 8px;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: 0 6px 14px rgba(0,0,0,0.35);
 }
 
 /* Responsive tweaks */
